@@ -1,7 +1,8 @@
 import { MainFrame } from "@/components/MainFrame"
+import { Input } from "@/components/Input"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDailyRates } from "@/api"
-import { useMemo } from "react"
+import { type ChangeEvent, useCallback, useMemo, useState } from "react"
 import { centralBankDataParser } from "@/centralBankDataParser"
 
 function App() {
@@ -33,8 +34,54 @@ function App() {
   }, [dailyRatesRaw])
 
   console.info({ dailyRatesRaw, dailyRates, isLoading, apiError, error })
+  const [czkRawValue, setRawCzkValue] = useState("1")
+  const handleCzkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setRawCzkValue(e.target.value)
+  }, [])
 
-  return <MainFrame>APP</MainFrame>
+  const [foreignRawValue, setForeignRawValue] = useState("1")
+  const handleForeignChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setForeignRawValue(e.target.value)
+    },
+    [],
+  )
+
+  const currency = "EUR"
+
+  const currencyRate = useMemo(
+    () => dailyRates?.rates?.find((it) => it.code === currency),
+    [dailyRates, currency],
+  )
+
+  return (
+    <MainFrame>
+      <div>
+        Current {currency} rate is {currencyRate ? currencyRate.rate : "N/A"}
+      </div>
+      <div>
+        <Input
+          type="number"
+          value={czkRawValue}
+          onChange={handleCzkChange}
+          $fullWidth
+          $size="lg"
+          disabled={!currencyRate}
+        />
+      </div>
+      <div>
+        <Input
+          type="number"
+          placeholder="EUR"
+          value={foreignRawValue}
+          onChange={handleForeignChange}
+          $fullWidth
+          $size="lg"
+          disabled={!currencyRate}
+        />
+      </div>
+    </MainFrame>
+  )
 }
 
 export default App
