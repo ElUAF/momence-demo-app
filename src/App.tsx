@@ -1,9 +1,22 @@
 import { MainFrame } from "@/components/MainFrame"
 import { Input } from "@/components/Input"
+import { CurrencySelect } from "@/components/CurrencySelect"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDailyRates } from "@/api"
 import { type ChangeEvent, useCallback, useMemo, useState } from "react"
 import { centralBankDataParser } from "@/centralBankDataParser"
+import { Row } from "@/components/Row/Row.tsx"
+
+const defaultCurrencyOptions = [
+  {
+    code: "CZK",
+    name: "Czech Koruna",
+  },
+  {
+    code: "EUR",
+    name: "Euro",
+  },
+]
 
 function App() {
   const {
@@ -47,39 +60,72 @@ function App() {
     [],
   )
 
-  const currency = "EUR"
+  const [currency, setCurrency] = useState("EUR")
+  const handleCurrencyChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      setCurrency(e.target.value)
+    },
+    [],
+  )
 
   const currencyRate = useMemo(
     () => dailyRates?.rates?.find((it) => it.code === currency),
     [dailyRates, currency],
   )
 
+  const currencyOptions = useMemo(() => {
+    return (
+      dailyRates?.rates?.map((it) => ({
+        code: it.code,
+        name: it.currency,
+      })) ?? defaultCurrencyOptions
+    )
+  }, [dailyRates])
+
   return (
     <MainFrame>
-      <div>
-        Current {currency} rate is {currencyRate ? currencyRate.rate : "N/A"}
-      </div>
-      <div>
+      <Row>
         <Input
           type="number"
           value={czkRawValue}
           onChange={handleCzkChange}
           $fullWidth
-          $size="lg"
+          $size="md"
           disabled={!currencyRate}
         />
-      </div>
-      <div>
+        <CurrencySelect
+          value="CZK"
+          onChange={handleCurrencyChange}
+          options={defaultCurrencyOptions}
+          $minWidth={65}
+          $size="lg"
+          disabled
+        />
+      </Row>
+      <Row>
         <Input
           type="number"
-          placeholder="EUR"
+          placeholder={currency}
           value={foreignRawValue}
           onChange={handleForeignChange}
           $fullWidth
-          $size="lg"
+          $size="md"
           disabled={!currencyRate}
         />
-      </div>
+        <CurrencySelect
+          value={currency}
+          onChange={handleCurrencyChange}
+          options={currencyOptions}
+          $size="lg"
+          $minWidth={65}
+          disabled={!dailyRates}
+        />
+      </Row>
+      {currencyRate && (
+        <Row>
+          Current {currency} rate is {currencyRate.rate}
+        </Row>
+      )}
     </MainFrame>
   )
 }
