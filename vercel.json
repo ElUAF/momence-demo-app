@@ -1,6 +1,7 @@
 {
   "devCommand": "vite",
-  "buildCommand": "vite build",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/api/central-bank-proxy",
