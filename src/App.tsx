@@ -1,4 +1,4 @@
-import { Layout } from "@/components/Layout"
+import { MainFrame } from "@/components/MainFrame"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDailyRates } from "@/api"
 
@@ -14,7 +14,7 @@ function App() {
 
   console.info({ dailyRates, isLoading, error })
 
-  return <Layout>APP</Layout>
+  return <MainFrame>APP</MainFrame>
 }
 
 export default App
