@@ -1,0 +1,14 @@
+{
+  "devCommand": "vite",
+  "buildCommand": "vite build",
+  "rewrites": [
+    {
+      "source": "/api/central-bank-proxy",
+      "destination": "/api/central-bank-proxy"
+    },
+    {
+      "source": "!/(api|_vercel|assets|favicon.ico|robots.txt)(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+export { fetchDailyRates } from "./fetchDailyRates"
