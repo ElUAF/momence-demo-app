@@ -1,3 +1,7 @@
+# Where is git location?
+
+* `https://github.com/ElUAF/momence-demo-app`
+
 # How to run it locally?  
 
 * `npm install`
