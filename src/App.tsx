@@ -13,6 +13,7 @@ import {
 import { centralBankDataParser } from "@/centralBankDataParser"
 import { Row } from "@/components/Row/Row.tsx"
 import { Loading } from "@/components/Loading"
+import { Button } from "@/components/Button"
 
 const defaultCurrencyOptions = [
   {
@@ -40,6 +41,7 @@ function App() {
     data: dailyRatesRaw,
     isLoading,
     error: apiError,
+    refetch,
   } = useQuery({
     queryKey: ["dailyRates"], // Unique key for caching and refetching
     queryFn: fetchDailyRates, // The function that fetches the data
@@ -123,11 +125,40 @@ function App() {
     )
   }, [dailyRates])
 
+  // Derive a human-friendly error message when fetching/parsing fails
+  const errorMessage = useMemo(() => {
+    if (apiError) {
+      return `Failed to load rates from the central bank`
+    }
+    if (error) {
+      return error
+    }
+    return null
+  }, [apiError, error])
+
+  const handleTryAgain = useCallback(async () => {
+    await refetch()
+  }, [refetch])
+
   // Show a loading component while fetching the rates for the first time
   if (isLoading && !dailyRates) {
     return (
       <MainFrame>
         <Loading text="Loading rates from the central bank…" />
+      </MainFrame>
+    )
+  }
+
+  // Show an error state instead of normal content when an error happens
+  if (!isLoading && errorMessage) {
+    return (
+      <MainFrame>
+        <Row>{errorMessage}</Row>
+        <Row>
+          <Button $variant="primary" onClick={handleTryAgain}>
+            Retry
+          </Button>
+        </Row>
       </MainFrame>
     )
   }
