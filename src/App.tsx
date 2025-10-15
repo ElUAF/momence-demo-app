@@ -3,7 +3,13 @@ import { Input } from "@/components/Input"
 import { CurrencySelect } from "@/components/CurrencySelect"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDailyRates } from "@/api"
-import { type ChangeEvent, useCallback, useMemo, useState } from "react"
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { centralBankDataParser } from "@/centralBankDataParser"
 import { Row } from "@/components/Row/Row.tsx"
 
@@ -17,6 +23,16 @@ const defaultCurrencyOptions = [
     name: "Euro",
   },
 ]
+
+const decimalCount = 4
+
+function keepMaxDecimals(value: string) {
+  const match = value.match(/^(-?\d+)([,.]\d{1,4})?/)
+  if (match) {
+    return match[1] + (match[2] || "")
+  }
+  return value
+}
 
 function App() {
   const {
@@ -46,31 +62,55 @@ function App() {
     }
   }, [dailyRatesRaw])
 
-  console.info({ dailyRatesRaw, dailyRates, isLoading, apiError, error })
-  const [czkRawValue, setRawCzkValue] = useState("1")
-  const handleCzkChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setRawCzkValue(e.target.value)
-  }, [])
-
-  const [foreignRawValue, setForeignRawValue] = useState("1")
-  const handleForeignChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setForeignRawValue(e.target.value)
-    },
-    [],
+  const [currency, setCurrency] = useState("EUR")
+  const currencyRate = useMemo(
+    () => dailyRates?.rates?.find((it) => it.code === currency),
+    [dailyRates, currency],
   )
 
-  const [currency, setCurrency] = useState("EUR")
+  const [czkRawValue, setRawCzkValue] = useState("100")
+  const [foreignRawValue, setForeignRawValue] = useState("100")
+
+  useEffect(() => {
+    if (currencyRate) {
+      setForeignRawValue(
+        `${((parseFloat(czkRawValue) * currencyRate.amount) / currencyRate.rate).toFixed(decimalCount)}`,
+      )
+    }
+  }, [currencyRate]) // there is only currencyRate - we don't need to recalculate it on every change of czkRawValue
+
+  const handleCzkChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newValue = keepMaxDecimals(e.target.value)
+      setRawCzkValue(newValue)
+      if (currencyRate) {
+        setForeignRawValue(
+          `${((parseFloat(newValue) * currencyRate.amount) / currencyRate.rate).toFixed(decimalCount)}`,
+        )
+      }
+    },
+    [currencyRate],
+  )
+
+  const handleForeignChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const newValue = keepMaxDecimals(e.target.value)
+      setForeignRawValue(newValue)
+
+      if (currencyRate) {
+        setRawCzkValue(
+          `${((parseFloat(newValue) * currencyRate.rate) / currencyRate.amount).toFixed(decimalCount)}`,
+        )
+      }
+    },
+    [currencyRate],
+  )
+
   const handleCurrencyChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
       setCurrency(e.target.value)
     },
     [],
-  )
-
-  const currencyRate = useMemo(
-    () => dailyRates?.rates?.find((it) => it.code === currency),
-    [dailyRates, currency],
   )
 
   const currencyOptions = useMemo(() => {
@@ -91,6 +131,7 @@ function App() {
           onChange={handleCzkChange}
           $fullWidth
           $size="md"
+          min="0"
           disabled={!currencyRate}
         />
         <CurrencySelect
@@ -110,6 +151,7 @@ function App() {
           onChange={handleForeignChange}
           $fullWidth
           $size="md"
+          min="0"
           disabled={!currencyRate}
         />
         <CurrencySelect
@@ -123,7 +165,9 @@ function App() {
       </Row>
       {currencyRate && (
         <Row>
-          Current {currency} rate is {currencyRate.rate}
+          Current rate: 1 CZK to{" "}
+          {(currencyRate.amount / currencyRate.rate).toFixed(decimalCount)}{" "}
+          {currency}
         </Row>
       )}
     </MainFrame>
