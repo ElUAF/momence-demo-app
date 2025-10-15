@@ -12,6 +12,7 @@ import {
 } from "react"
 import { centralBankDataParser } from "@/centralBankDataParser"
 import { Row } from "@/components/Row/Row.tsx"
+import { Loading } from "@/components/Loading"
 
 const defaultCurrencyOptions = [
   {
@@ -121,6 +122,15 @@ function App() {
       })) ?? defaultCurrencyOptions
     )
   }, [dailyRates])
+
+  // Show a loading component while fetching the rates for the first time
+  if (isLoading && !dailyRates) {
+    return (
+      <MainFrame>
+        <Loading text="Loading rates from the central bank…" />
+      </MainFrame>
+    )
+  }
 
   return (
     <MainFrame>
