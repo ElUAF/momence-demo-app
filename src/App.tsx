@@ -44,6 +44,8 @@ function App() {
     }
   }, [dailyRatesRaw])
 
+  console.log(dailyRates)
+
   const errorMessage = useMemo(() => {
     if (apiError) {
       return `Failed to load rates from the central bank`

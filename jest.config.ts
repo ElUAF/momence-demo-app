@@ -4,8 +4,15 @@ const config: Config = {
   // Use ts-jest to process TypeScript files
   preset: "ts-jest",
 
+  globals: {
+    "ts-jest": {
+      // Point ts-jest to your application's tsconfig file
+      tsconfig: "tsconfig.test.json",
+    },
+  },
+
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
 
   // Look for test files ending in .test.ts or .spec.ts
   testMatch: ["**/?(*.)+(spec|test).ts?(x)"],
@@ -17,8 +24,9 @@ const config: Config = {
   collectCoverage: true,
   collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts"],
 
-  // Mapping to resolve paths defined in tsconfig.json (optional but useful)
+  modulePaths: ["<rootDir>/src"],
   moduleNameMapper: {
+    // Generic alias mapping for all other @/ imports
     "^@/(.*)$": "<rootDir>/src/$1",
   },
 }

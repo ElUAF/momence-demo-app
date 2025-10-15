@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useState } from "react"
+import { useCallback, useState } from "react"
 
 function keepMaxDecimals(value: string, maxDecimals: number) {
   const pattern = new RegExp(
@@ -21,6 +21,12 @@ function keepMaxDecimals(value: string, maxDecimals: number) {
   return value
 }
 
+export type InputChangeEvent = {
+  target: {
+    value: string
+  }
+}
+
 export const useNumberInput = (
   config: { initialValue?: number; maxDecimals?: number } = {},
 ) => {
@@ -30,7 +36,7 @@ export const useNumberInput = (
   const [value, setValue] = useState(`${initialValue}`)
 
   const onChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
+    (e: InputChangeEvent) => {
       const newValue = maxDecimals
         ? keepMaxDecimals(e.target.value, maxDecimals)
         : e.target.value

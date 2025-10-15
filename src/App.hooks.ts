@@ -1,12 +1,8 @@
-import type { DailyRateData } from "@/centralBankDataParser/centralBankDataParser.ts"
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNumberInput } from "@/components/Input"
+import type { InputChangeEvent } from "@/components/Input/hooks.ts"
+import type { HTMLSelectElementChangeEvent } from "@/components/Select"
+import type { DailyRateData } from "@/types.ts"
 
 export const decimalCount = 4
 
@@ -57,7 +53,7 @@ export const useAppLogic = (config: { dailyRates: DailyRateData | null }) => {
   }, [currencyRate, foreignInputSetNumberValue]) // there is only currencyRate - we don't need to recalculate it if only cz value is changed
 
   const handleCzkChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
+    (e: InputChangeEvent) => {
       const { newNumberValue } = czInputOnChange(e)
       if (currencyRate) {
         foreignInputSetNumberValue(
@@ -69,7 +65,7 @@ export const useAppLogic = (config: { dailyRates: DailyRateData | null }) => {
   )
 
   const handleForeignChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
+    (e: InputChangeEvent) => {
       const { newNumberValue } = foreignInputValueOnChange(e)
       if (currencyRate) {
         czInputValueSetNumberValue(
@@ -81,7 +77,7 @@ export const useAppLogic = (config: { dailyRates: DailyRateData | null }) => {
   )
 
   const handleCurrencyChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
+    (e: HTMLSelectElementChangeEvent) => {
       setCurrency(e.target.value)
     },
     [],

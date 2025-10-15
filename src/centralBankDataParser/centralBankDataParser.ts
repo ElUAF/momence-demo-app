@@ -1,3 +1,5 @@
+import type { DailyRateData } from "@/types.ts"
+
 export interface CurrencyRate {
   /** The country name associated with the currency. */
   country: string
@@ -13,14 +15,6 @@ export interface CurrencyRate {
 
   /** The actual exchange rate value (the local currency equivalent of the 'amount' foreign currency). */
   rate: number
-}
-
-export interface DailyRateData {
-  /** The effective date of the exchange rates (e.g., "13 Oct 2025"). */
-  date: string
-
-  /** An array of all individual currency rate entries. */
-  rates: CurrencyRate[]
 }
 
 function formatLocalDateIsoFormat(d: Date): string {

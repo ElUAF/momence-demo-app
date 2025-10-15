@@ -1,0 +1,35 @@
+// tsconfig.test.json
+
+{
+  // Inherit the compiler options from your application config
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    // 1. Override the strictest module syntax setting
+    "verbatimModuleSyntax": false,
+
+    // 2. Set the module system Jest expects (CommonJS is often safer for testing)
+    // NOTE: If you are using Jest 28+ with 'type: module' in package.json,
+    // you might need to try "ESNext" or "NodeNext" instead.
+    "module": "CommonJS",
+    "moduleResolution": "node",
+
+    // Enable default-import compatibility for CommonJS-style typings (e.g., React)
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // 3. Ensure 'jest' types are included
+    "types": ["jest", "node"]
+  },
+
+  // Only include test files and the source files they depend on
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
