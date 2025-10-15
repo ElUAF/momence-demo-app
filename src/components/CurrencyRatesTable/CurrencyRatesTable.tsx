@@ -5,6 +5,10 @@ import type { CurrencyRate } from "@/centralBankDataParser/centralBankDataParser
 export interface CurrencyRatesTableProps {
   rates: CurrencyRate[]
   caption?: string
+  /** Highlight the row for this currency code */
+  selectedCode?: string
+  /** Called when a row is clicked, with the currency code */
+  onSelectCode?: (code: string) => void
 }
 
 const Table = styled.table`
@@ -30,10 +34,27 @@ const TH = styled.th`
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 `
 
-const TR = styled.tr`
+const TR = styled.tr.withConfig({
+  shouldForwardProp: (prop) => !["$active", "$clickable"].includes(prop as string),
+})<{$active?: boolean; $clickable?: boolean}>`
   &:nth-child(even) {
     background: rgba(255, 255, 255, 0.03);
   }
+
+  ${(p) =>
+    p.$active &&
+    `
+    background: rgba(94, 188, 243, 0.12);
+    box-shadow: inset 0 0 0 2px rgba(94, 188, 243, 0.35);
+    font-weight: 600;
+  `}
+
+  ${(p) =>
+    p.$clickable &&
+    `
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, 0.08); }
+  `}
 `
 
 const TD = styled.td`
@@ -52,6 +73,8 @@ const Caption = styled.caption`
 export const CurrencyRatesTable: React.FC<CurrencyRatesTableProps> = ({
   rates,
   caption,
+  selectedCode,
+  onSelectCode,
 }) => {
   const ratesSorted = useMemo(
     () => rates.sort((a, b) => a.code.localeCompare(b.code)),
@@ -71,7 +94,13 @@ export const CurrencyRatesTable: React.FC<CurrencyRatesTableProps> = ({
       </THead>
       <tbody>
         {ratesSorted.map((r) => (
-          <TR key={r.code}>
+          <TR
+            key={r.code}
+            $active={selectedCode === r.code}
+            $clickable={!!onSelectCode}
+            aria-selected={selectedCode === r.code}
+            onClick={onSelectCode ? () => onSelectCode(r.code) : undefined}
+          >
             <TD>{r.code}</TD>
             <TD>{r.currency}</TD>
             <TD>{r.amount}</TD>

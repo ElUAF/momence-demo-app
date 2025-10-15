@@ -1,5 +1,5 @@
 import { MainFrame } from "@/components/MainFrame"
-import { Input } from "@/components/Input"
+import { Input, useNumberInput } from "@/components/Input"
 import { CurrencySelect } from "@/components/CurrencySelect"
 import { useQuery } from "@tanstack/react-query"
 import { fetchDailyRates } from "@/api"
@@ -28,14 +28,6 @@ const defaultCurrencyOptions = [
 ]
 
 const decimalCount = 4
-
-function keepMaxDecimals(value: string) {
-  const match = value.match(/^(-?\d+)([,.]\d{1,4})?/)
-  if (match) {
-    return match[1] + (match[2] || "")
-  }
-  return value
-}
 
 function App() {
   const {
@@ -72,42 +64,55 @@ function App() {
     [dailyRates, currency],
   )
 
-  const [czkRawValue, setRawCzkValue] = useState("100")
-  const [foreignRawValue, setForeignRawValue] = useState("100")
+  const {
+    numberValue: czInputNumber,
+    onChange: czInputOnChange,
+    setNumberValue: czInputValueSetNumberValue,
+    ...czInputValue
+  } = useNumberInput({
+    initialValue: 100,
+    maxDecimals: decimalCount,
+  })
+
+  const {
+    setNumberValue: foreignInputSetNumberValue,
+    onChange: foreignInputValueOnChange,
+    ...foreignInputValue
+  } = useNumberInput({
+    initialValue: 100,
+    maxDecimals: decimalCount,
+  })
 
   useEffect(() => {
     if (currencyRate) {
-      setForeignRawValue(
-        `${((parseFloat(czkRawValue) * currencyRate.amount) / currencyRate.rate).toFixed(decimalCount)}`,
+      foreignInputSetNumberValue(
+        (czInputNumber * currencyRate.amount) / currencyRate.rate,
       )
     }
-  }, [currencyRate]) // there is only currencyRate - we don't need to recalculate it on every change of czkRawValue
+  }, [currencyRate, foreignInputSetNumberValue]) // there is only currencyRate - we don't need to recalculate it if only cz value is changed
 
   const handleCzkChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const newValue = keepMaxDecimals(e.target.value)
-      setRawCzkValue(newValue)
+      const { newNumberValue } = czInputOnChange(e)
       if (currencyRate) {
-        setForeignRawValue(
-          `${((parseFloat(newValue) * currencyRate.amount) / currencyRate.rate).toFixed(decimalCount)}`,
+        foreignInputSetNumberValue(
+          (newNumberValue * currencyRate.amount) / currencyRate.rate,
         )
       }
     },
-    [currencyRate],
+    [currencyRate, czInputOnChange, foreignInputSetNumberValue],
   )
 
   const handleForeignChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      const newValue = keepMaxDecimals(e.target.value)
-      setForeignRawValue(newValue)
-
+      const { newNumberValue } = foreignInputValueOnChange(e)
       if (currencyRate) {
-        setRawCzkValue(
-          `${((parseFloat(newValue) * currencyRate.rate) / currencyRate.amount).toFixed(decimalCount)}`,
+        czInputValueSetNumberValue(
+          (newNumberValue * currencyRate.rate) / currencyRate.amount,
         )
       }
     },
-    [currencyRate],
+    [currencyRate, foreignInputValueOnChange, czInputValueSetNumberValue],
   )
 
   const handleCurrencyChange = useCallback(
@@ -128,7 +133,6 @@ function App() {
     )
   }, [dailyRates])
 
-  // Derive a human-friendly error message when fetching/parsing fails
   const errorMessage = useMemo(() => {
     if (apiError) {
       return `Failed to load rates from the central bank`
@@ -143,7 +147,6 @@ function App() {
     await refetch()
   }, [refetch])
 
-  // Show a loading component while fetching the rates for the first time
   if (isLoading && !dailyRates) {
     return (
       <MainFrame>
@@ -152,7 +155,6 @@ function App() {
     )
   }
 
-  // Show an error state instead of normal content when an error happens
   if (!isLoading && errorMessage) {
     return (
       <MainFrame>
@@ -171,7 +173,7 @@ function App() {
       <Row>
         <Input
           type="number"
-          value={czkRawValue}
+          {...czInputValue.props}
           onChange={handleCzkChange}
           $fullWidth
           $size="md"
@@ -191,7 +193,7 @@ function App() {
         <Input
           type="number"
           placeholder={currency}
-          value={foreignRawValue}
+          {...foreignInputValue.props}
           onChange={handleForeignChange}
           $fullWidth
           $size="md"
@@ -223,6 +225,8 @@ function App() {
                 ? `Official rates for ${dailyRates.date}`
                 : undefined
             }
+            selectedCode={currency}
+            onSelectCode={setCurrency}
           />
         </Row>
       )}
