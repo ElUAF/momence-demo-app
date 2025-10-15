@@ -14,6 +14,7 @@ import { centralBankDataParser } from "@/centralBankDataParser"
 import { Row } from "@/components/Row/Row.tsx"
 import { Loading } from "@/components/Loading"
 import { Button } from "@/components/Button"
+import { CurrencyRatesTable } from "@/components/CurrencyRatesTable"
 
 const defaultCurrencyOptions = [
   {
@@ -118,10 +119,12 @@ function App() {
 
   const currencyOptions = useMemo(() => {
     return (
-      dailyRates?.rates?.map((it) => ({
-        code: it.code,
-        name: it.currency,
-      })) ?? defaultCurrencyOptions
+      dailyRates?.rates
+        ?.map((it) => ({
+          code: it.code,
+          name: it.currency,
+        }))
+        .sort((a, b) => a.code.localeCompare(b.code)) ?? defaultCurrencyOptions
     )
   }, [dailyRates])
 
@@ -209,6 +212,18 @@ function App() {
           Current rate: 1 CZK to{" "}
           {(currencyRate.amount / currencyRate.rate).toFixed(decimalCount)}{" "}
           {currency}
+        </Row>
+      )}
+      {dailyRates?.rates && dailyRates.rates.length > 0 && (
+        <Row>
+          <CurrencyRatesTable
+            rates={dailyRates.rates}
+            caption={
+              dailyRates.date
+                ? `Official rates for ${dailyRates.date}`
+                : undefined
+            }
+          />
         </Row>
       )}
     </MainFrame>
